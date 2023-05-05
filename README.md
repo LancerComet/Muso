@@ -8,16 +8,14 @@ Muso is a photo viewer. And it is especially designed for manga reading.
 
 Muso is implemented in canvas to have the native-like touching experience.
 
+[Demo](https://lancercomet.github.io/Muso/)
+
 ## Feature
 
 - Implement in canvas. Native-like touching experience.
 - Reactive sizing. Suitable for all type of devices.
 - Three viewing mode: left swipe, right swipe, vertical scrolling.
 - Zero dependency.
-
-## Online demo
-
-TODO: ...
 
 ## Quick Start
 

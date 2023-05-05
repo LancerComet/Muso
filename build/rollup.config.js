@@ -19,6 +19,9 @@ export default {
   plugins: [
     typescript({
       tsconfigOverride: {
+        compilerOptions: {
+          declaration: true
+        },
         include: ['./lib']
       }
     })
