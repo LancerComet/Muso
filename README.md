@@ -6,14 +6,17 @@ Yet another photo viewer. Especially designed for manga reading.
 
 Is implemented in canvas to have the native-like touching experience.
 
-[Demo](https://lancercomet.github.io/Muso/)
-
 ## Feature
 
 - Implement in canvas. Native-like touching experience.
 - Reactive sizing. Suitable for all type of devices.
 - Three viewing mode: left swipe, right swipe, vertical scrolling.
 - Zero dependency.
+
+## Demo
+
+ - [Demo](https://lancercomet.github.io/Muso/) - This is a basic demo showing a fullscreen Muso. 
+ - [Bilibili Manga](https://manga.bilibili.com/m/mc28201/463667) - Please use mobile device to visit this page, otherwise it will redirect to the desktop version which is nothing to do with Muso. And this Muso is a little different from the one in the repo, some bugs are not fixed yet, and the animation is too fast if the refresh rate is > 60 fps.
 
 ## Quick Start
 
