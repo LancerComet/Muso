@@ -10,7 +10,6 @@
     "skipDefaultLibCheck": true,
     "esModuleInterop": true,
     "removeComments": true,
-    "declaration": true,
     "lib": [
       "dom",
       "es5",

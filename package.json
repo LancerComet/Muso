@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "webpack-dev-server --config ./build/webpack.conf.js",
     "build": "rollup -c ./build/rollup.config.js --bundleConfigAsCjs",
-    "build:demo": "webpack --config ./build/webpack.conf.js"
+    "build:demo": "webpack --config ./build/webpack.prod.js"
   },
   "author": {
     "name": "LancerComet",
