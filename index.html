@@ -1,0 +1,43 @@
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+    <title>Muso dev page</title>
+    <style>
+      .dp-flex {
+        display: flex;
+      }
+
+      .button-container {
+        justify-content: space-between;
+        width: 100%;
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .muso-container {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  <script defer src="/main.js"></script></head>
+
+  <body>
+    <div class="muso-container">
+      <canvas id="muso"></canvas>
+    </div>
+
+    <div class="button-container dp-flex">
+      <button id="prev-btn">Prev</button>
+      <div class="dp-flex">
+        <button id="ltr-btn">Horizontal LTR</button>
+        <button id="rtl-btn">Horizonal RTL</button>
+        <button id="vertical-btn">Vertical Scrolling</button>
+      </div>
+      <button id="next-btn">Next</button>
+    </div>
+  </body>
+</html>
