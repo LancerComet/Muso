@@ -97,6 +97,10 @@ const main = async () => {
       muso.goPrevPage()
     } else if (key === 'ArrowRight') {
       muso.goNextPage()
+    } else if (key === 'Home') {
+      muso.goTargetPage(0)
+    } else if (key === 'End') {
+      muso.goTargetPage(imageUrls.length - 1)
     }
   })
 }

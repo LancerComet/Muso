@@ -1,12 +1,10 @@
 # Muso
 
-Yet another photo viewer especially designed for manga reading.
-
 ![logo](static/logo.png)
 
-Muso is a photo viewer. And it is especially designed for manga reading. 
+Yet another photo viewer. Especially designed for manga reading.
 
-Muso is implemented in canvas to have the native-like touching experience.
+Is implemented in canvas to have the native-like touching experience.
 
 [Demo](https://lancercomet.github.io/Muso/)
 
