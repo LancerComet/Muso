@@ -13,14 +13,14 @@ const loadImg = (url: string) => {
 }
 
 const imageUrls = [
-  'https://cdn.discordapp.com/attachments/1022482470068826162/1101171634729127936/LancerComet_Many_coins_popped_out_from_two_girls_bilibili_22_33_0deda81d-53c9-4c0a-95cf-a3c0440bd2f5.png',
-  'https://cdn.discordapp.com/attachments/1022482470068826162/1098518866369450004/LancerComet_Many_coins_popped_out_from_two_girls_bilibili_22_33_d6e038e5-57d2-48fd-bf79-c11b976b6199.png',
-  'https://cdn.discordapp.com/attachments/1022482470068826162/1098518869586477138/LancerComet_Many_coins_popped_out_from_two_girls_bilibili_22_33_c8554f08-40e8-44a8-9911-d845ba000133.png',
-  'https://cdn.discordapp.com/attachments/1022482470068826162/1089860274514829372/LancerComet_a_catgirl_walking_on_the_street_in_traditional_chin_c7b84bbb-9ef8-463a-ade2-9b06a71a82fc.png',
-  'https://cdn.discordapp.com/attachments/1022482470068826162/1101172129497632879/LancerComet_an_image_that_presents_the_file_caching_black_and_w_49c20d40-32a9-45ad-9b2a-f1ace655f697.png',
-  'https://cdn.discordapp.com/attachments/1022482470068826162/1101174246899712104/LancerComet_a_picture_of_city_scene_black_and_white_japanese_ma_770bf965-74a3-4dff-818c-e390bafa5662.png',
-  'https://cdn.discordapp.com/attachments/1022482470068826162/1098152458846470165/LancerComet_an_image_that_presents_the_file_caching_black_and_w_567e0751-ae9d-4b5e-9dd0-fa1df570f301.png',
-  'https://cdn.discordapp.com/attachments/1022482470068826162/1098152018801078313/LancerComet_an_image_that_presents_the_file_caching_d2ede472-b362-495c-a52a-f72ca28be29d.png'
+  'https://static.lancercomet.com/lancercomet/misc/MusoImages/001.png?imageView2/2/format/jpg',
+  'https://static.lancercomet.com/lancercomet/misc/MusoImages/002.png?imageView2/2/format/jpg',
+  'https://static.lancercomet.com/lancercomet/misc/MusoImages/003.png?imageView2/2/format/jpg',
+  'https://static.lancercomet.com/lancercomet/misc/MusoImages/004.png?imageView2/2/format/jpg',
+  'https://static.lancercomet.com/lancercomet/misc/MusoImages/005.png?imageView2/2/format/jpg',
+  'https://static.lancercomet.com/lancercomet/misc/MusoImages/006.png?imageView2/2/format/jpg',
+  'https://static.lancercomet.com/lancercomet/misc/MusoImages/007.png?imageView2/2/format/jpg',
+  'https://static.lancercomet.com/lancercomet/misc/MusoImages/008.png?imageView2/2/format/jpg'
 ]
 
 const main = async () => {
@@ -101,6 +101,15 @@ const main = async () => {
       muso.goTargetPage(0)
     } else if (key === 'End') {
       muso.goTargetPage(imageUrls.length - 1)
+    }
+  })
+
+  window.addEventListener('wheel', event => {
+    const deltaY = event.deltaY
+    if (deltaY > 0) {
+      muso.goNextPage()
+    } else {
+      muso.goPrevPage()
     }
   })
 }

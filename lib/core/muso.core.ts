@@ -150,9 +150,9 @@ class Muso {
     this.option.renderingImageCount = option.renderingImageCount || 5
     this.option.horizontalDirection = option.horizontalDirection || HorizontalDirection.LTR
     this.option.maxWidth = option.maxWidth || (() => this.stage.canvas.offsetWidth ?? 0)
-    this.option.minWidth = option.minWidth || function () { return 0 }
+    this.option.minWidth = option.minWidth || (() => 0)
     this.option.maxHeight = option.maxHeight || (() => this.stage.canvas.offsetHeight ?? 0)
-    this.option.minHeight = option.minHeight || function () { return 0 }
+    this.option.minHeight = option.minHeight || (() => 0)
     this.option.restoreScaleRate = option.restoreScaleRate || 1.3
     this.option.scrollingMode = option.scrollingMode || ScrollingMode.Horizontal
     this.option.noDefaultControl = option.noDefaultControl || false
@@ -161,7 +161,7 @@ class Muso {
     this.option.zoomTouchMoveAcc = option.zoomTouchMoveAcc || 1.05
     this.option.placeholder = option.placeholder || null
     this.option.imageTimeout = option.imageTimeout || 5000
-    this.option.otherPageAlpha = option.otherPageAlpha || function () { return 1 }
+    this.option.otherPageAlpha = option.otherPageAlpha || (() => 1)
   }
 }
 

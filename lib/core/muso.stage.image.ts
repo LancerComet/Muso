@@ -234,7 +234,7 @@ class StageImage {
           }
         }
 
-        image.onload = async () => {
+        image.onload = () => {
           clearTimeout(timeoutTimer)
           this.originalWidth = image.width
           this.originalHeight = image.height

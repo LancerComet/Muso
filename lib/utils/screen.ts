@@ -3,7 +3,6 @@ abstract class ScreenUtils {
    * 获取设备屏幕缩放比率.
    */
   static getScaleRatio (): number {
-    // TODO: 有没有必要做成动态
     let scaleRatio: number
     try {
       const ctx = document.createElement('canvas').getContext('2d') as any
