@@ -26,7 +26,7 @@ class StageSwiper {
   private touchList: TouchList = null
   get inTouch () { return this.touchList && this.touchList.length > 0 }
   get touchPointCount () { return this.touchList ? this.touchList.length : 0 }
-  private get isDuoTouch () { return this.touchPointCount === 2 }
+  get isDuoTouch () { return this.touchPointCount === 2 }
 
   private touchDirectionX: TouchDirection = null
   private touchDirectionY: TouchDirection = null
@@ -104,19 +104,21 @@ class StageSwiper {
     this._touchMoveY = value
     eventBus.emit(EventType.TouchMoveY, value)
 
-    // 处理单指触摸时的 Y 轴方向.
+    // 这里只需要处理单指触摸时的 Y 轴方向.
     if (this.isDuoTouch || !this.isHorizontalMode) {
       return
     }
 
     if (this.stage.displayScale === 1) {
       this.stage.touchMoveY = value
+      return
     }
 
     if (this.stage.displayScale > 1 && this.currentTouchId === this.touchId) {
       const newCenterY = this.lastCenterY + (
         (-value * (1 / this.stage.displayScale) * SCREEN_RATIO) * this.stageOption.zoomTouchMoveAcc
       )
+
       if (newCenterY > 0 && newCenterY < this.stage.canvasLogicHeight) {
         this.rawCenterY = newCenterY
       }
@@ -166,14 +168,18 @@ class StageSwiper {
   }
 
   // 双指触摸坐标位信息.
-  centerX: number = 0
-  centerY: number = 0
+  private _centerX = 0
+  get centerX () { return this._centerX }
+  private set centerX (value: number) { this._centerX = value }
+
+  private _centerY = 0
+  get centerY () { return this._centerY }
+  private set centerY (value: number) { this._centerY = value }
+
   private startCenterX: number = null
   private startCenterY: number = null
   private lastCenterX: number = null
   private lastCenterY: number = null
-  get centerDeltaX () { return this.rawCenterX - this.startCenterX }
-  get centerDeltaY () { return this.rawCenterY - this.startCenterY }
 
   private _rawCenterX: number = 0
   private get rawCenterX (): number { return this._rawCenterX }
@@ -266,11 +272,20 @@ class StageSwiper {
         p1.clientX, p1.clientY, p2.clientX, p2.clientY
       )
 
-      if (this.startCenterX === null) { this.startCenterX = centerX }
-      if (this.startCenterY === null) { this.startCenterY = centerY }
+      if (this.startCenterX === null) {
+        this.startCenterX = centerX
+      }
+      if (this.startCenterY === null) {
+        this.startCenterY = centerY
+      }
 
-      this.rawCenterX = centerX
-      this.rawCenterY = centerY
+      if (this.stage.displayScale >= 1) {
+        this.rawCenterX = this.stage.canvasLogicWidth - centerX
+        this.rawCenterY = this.stage.canvasLogicHeight - centerY
+      } else {
+        this.rawCenterX = centerX
+        this.rawCenterY = centerY
+      }
 
       // 计算缩放比率, 和起始时直线长度对比.
       const currentLength = MathUtils.calcLineLength(p1.clientX, p1.clientY, p2.clientX, p2.clientY)
@@ -291,9 +306,12 @@ class StageSwiper {
         this.rawScale = newRawScale
       }
 
+      const centerDeltaX = centerX - this.startCenterX
+      const centerDeltaY = centerY - this.startCenterY
+
       eventBus.emit(EventType.ZoomCenterMove, {
         position: [this.centerX, this.centerY],
-        delta: [this.centerDeltaX, this.centerDeltaY]
+        delta: [centerDeltaX, centerDeltaY]
       })
     }
 
@@ -376,9 +394,39 @@ class StageSwiper {
 
   // 初始化舞台控制逻辑.
   private initStageControl () {
-    const self = this
     const stage = this.stage
     const restoreScaleRate = stage.option.restoreScaleRate
+
+    // 释放 moveOffset 与 scale.
+    const releaseMoveOffset = () => {
+      GLOBAL_BEZIER.tick(this.touchMoveX, 0, 30, (value) => {
+        // 在手指触摸时不赋值, 否则会造成抖动.
+        if (!this.inTouch) {
+          this.touchMoveX = value
+        }
+      })
+
+      GLOBAL_BEZIER.tick(this.touchMoveY, 0, 30, (value) => {
+        this.touchMoveY = value
+      })
+    }
+
+    const releaseScaleRate = () => {
+      GLOBAL_BEZIER.tick(stage.displayScale, 1, 30, (value) => {
+        stage.displayScale = value
+        this._rawScale = value
+      })
+    }
+
+    const releaseZoomScaleCenterDelta = () => {
+      GLOBAL_BEZIER.tick(this.rawCenterX, stage.canvasLogicWidth / 2, 30, value => {
+        this.rawCenterX = value
+      })
+
+      GLOBAL_BEZIER.tick(this.rawCenterY, stage.canvasLogicHeight / 2, 30, value => {
+        this.rawCenterY = value
+      })
+    }
 
     // 横屏模式处理滑动手势.
     eventBus.on(EventType.Swipe, direction => {
@@ -418,7 +466,7 @@ class StageSwiper {
       if (newQueueOffsetY > 0) {
         const start = newQueueOffsetY * 0.5
         this.stage.queueOffsetForVertical = start
-        return GLOBAL_BEZIER.tick(start, 0, 30, (value, isDone) => {
+        return GLOBAL_BEZIER.tick(start, 0, 30, (value) => {
           if (!this.inTouch) {
             this.stage.queueOffsetForVertical = value
           }
@@ -435,7 +483,7 @@ class StageSwiper {
         // 滚动到最底部再次移动后加入缓动.
         if (Math.abs(touchMoveY) > availableScrollHeight) {
           this.stage.queueOffsetForVertical = touchMoveY
-          return GLOBAL_BEZIER.tick(touchMoveY, -availableScrollHeight, 30, (value, isDone) => {
+          return GLOBAL_BEZIER.tick(touchMoveY, -availableScrollHeight, 30, (value) => {
             if (!this.inTouch) {
               this.stage.queueOffsetForVertical = value
             }
@@ -463,6 +511,7 @@ class StageSwiper {
       if (lastQueueOffsetForVertical === null) {
         lastQueueOffsetForVertical = this.stage.queueOffsetForVertical
       }
+
       newQueueOffsetY = lastQueueOffsetForVertical + deltaY * this.stage.option.vTouchMoveAcc
 
       handleVerticalScroll({
@@ -563,49 +612,6 @@ class StageSwiper {
 
       doExtraMoveTs = null
     })
-
-    // 释放 moveOffset 与 scale.
-    let inRelease = false
-    function releaseMoveOffset () {
-      inRelease = true
-      let isXDone = false
-      let isYDone = false
-      const setInReleasing = () => { inRelease = !(isXDone && isYDone) }
-
-      GLOBAL_BEZIER.tick(self.touchMoveX, 0, 30, (value, isDone) => {
-        // 在手指触摸时不赋值, 否则会造成抖动.
-        if (!self.inTouch) {
-          self.touchMoveX = value
-          isXDone = isDone
-          setInReleasing()
-        }
-      })
-
-      GLOBAL_BEZIER.tick(self.touchMoveY, 0, 30, (value, isDone) => {
-        self.touchMoveY = value
-        isYDone = isDone
-        setInReleasing()
-      })
-    }
-
-    function releaseScaleRate () {
-      GLOBAL_BEZIER.tick(stage.displayScale, 1, 30, (value, isDone) => {
-        inRelease = true
-        stage.displayScale = value
-        self._rawScale = value
-        inRelease = !isDone
-      })
-    }
-
-    function releaseZoomScaleCenterDelta () {
-      GLOBAL_BEZIER.tick(self.rawCenterX, stage.canvasLogicWidth / 2, 30, value => {
-        self.rawCenterX = value
-      })
-
-      GLOBAL_BEZIER.tick(self.rawCenterY, stage.canvasLogicHeight / 2, 30, value => {
-        self.rawCenterY = value
-      })
-    }
   }
 
   /**

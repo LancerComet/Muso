@@ -598,9 +598,9 @@ class Stage {
       const xToCenterX = this.zoomCenterX - this.canvasLogicWidth / 2
       const yToCenterY = this.zoomCenterY - this.canvasLogicHeight / 2
 
-      const scalechange = this.displayScale - 1
-      const offsetX = -(xToCenterX * scalechange) * SCREEN_RATIO
-      const offsetY = -(yToCenterY * scalechange) * SCREEN_RATIO
+      const scaleChange = this.displayScale - 1
+      const offsetX = -(xToCenterX * scaleChange) * SCREEN_RATIO
+      const offsetY = -(yToCenterY * scaleChange) * SCREEN_RATIO
 
       distX += offsetX
       distY += offsetY
