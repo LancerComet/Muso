@@ -4,7 +4,7 @@
 
 Yet another photo viewer. Especially designed for manga reading.
 
-Is implemented in canvas to have the native-like touching experience.
+It is completely canvas-based, aims to have native-like touching experience.
 
 ## Feature
 
