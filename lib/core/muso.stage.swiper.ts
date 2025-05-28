@@ -377,6 +377,43 @@ class StageSwiper {
     eventBus.emit(EventType.MouseWheel, -event.deltaY)
   }
 
+  private isMouseDown:boolean = false
+
+  private onMouseDown (e: MouseEvent) {
+    this.isMouseDown = true
+
+    // 构造伪 TouchEvent
+    const fakeTouchEvent = {
+      preventDefault: () => e.preventDefault(),
+      touches: [{ clientX: e.clientX, clientY: e.clientY }]
+    } as unknown as TouchEvent
+
+    this.onTouchStart(fakeTouchEvent)
+  }
+
+  private onMouseMove (e: MouseEvent) {
+    if (!this.isMouseDown) {
+      return
+    }
+    const fakeTouchEvent = {
+      preventDefault: () => e.preventDefault(),
+      touches: [{ clientX: e.clientX, clientY: e.clientY }]
+    } as unknown as TouchEvent
+    this.onTouchMove(fakeTouchEvent)
+  }
+
+  private onMouseUp (e: MouseEvent) {
+    if (!this.isMouseDown) {
+      return
+    }
+    this.isMouseDown = false
+    const fakeTouchEvent = {
+      preventDefault: () => e.preventDefault(),
+      touches: []
+    } as unknown as TouchEvent
+    this.onTouchEnd(fakeTouchEvent)
+  }
+
   // 初始化触摸事件.
   private initTouchEvents () {
     this.onTouchStart = this.onTouchStart.bind(this)
@@ -614,6 +651,18 @@ class StageSwiper {
     })
   }
 
+  private initMouseEvents () {
+    const canvas = this.stageCanvas
+
+    this.onMouseDown = this.onMouseDown.bind(this)
+    this.onMouseMove = this.onMouseMove.bind(this)
+    this.onMouseUp = this.onMouseUp.bind(this)
+
+    canvas.addEventListener('mousedown', this.onMouseDown)
+    window.addEventListener('mousemove', this.onMouseMove)
+    window.addEventListener('mouseup', this.onMouseUp)
+  }
+
   /**
    * 销毁 Swiper.
    */
@@ -624,6 +673,11 @@ class StageSwiper {
     canvas.removeEventListener('touchend', this.onTouchEnd)
     canvas.removeEventListener('touchcancel', this.onTouchEnd)
     canvas.removeEventListener('scroll', this.onMouseWheel)
+
+    canvas.removeEventListener('mousedown', this.onMouseDown)
+    window.removeEventListener('mousemove', this.onMouseMove)
+    window.removeEventListener('mouseup', this.onMouseUp)
+
     this.stage = null
   }
 
@@ -631,6 +685,7 @@ class StageSwiper {
     this.stage = stage
     if (!stage.option.noDefaultControl) {
       this.initTouchEvents()
+      this.initMouseEvents()
       this.initStageControl()
     }
   }

@@ -1,8 +1,9 @@
+require('dotenv/config')
+
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path')
 const FriendlyErrorsPlugin = require('@soda/friendly-errors-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const webpack = require('webpack')
 
 const webpackConfig = {
   entry: resolve('dev/index.ts'),
@@ -57,7 +58,7 @@ const webpackConfig = {
 
   devServer: {
     static: resolve('static'),
-    port: 5000,
+    port: process.env.PORT || 8080,
     hot: true,
     host: '0.0.0.0'
   },
