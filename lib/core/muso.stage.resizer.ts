@@ -1,6 +1,5 @@
 import { ScrollingMode } from '../types'
 import { EventType } from '../types/event-type'
-import { eventBus } from './muso.eventbus'
 import { Stage } from './muso.stage'
 
 class StageResizer {
@@ -14,7 +13,7 @@ class StageResizer {
       if (this.stage.scrollingMode === ScrollingMode.Vertical) {
         this.stage.setVerticalQueueOffsetByPage()
       }
-      eventBus.emit(EventType.Resize, event)
+      this.stage.eventBus.emit(EventType.Resize, event)
     }
   }
 
@@ -27,7 +26,7 @@ class StageResizer {
   }
 
   destroy () {
-    window.removeEventListener(EventType.Resize, this.onResize)
+    window.removeEventListener('resize', this.onResize)
     this.onResize = null
   }
 

@@ -1,12 +1,13 @@
 import { ScrollingMode } from '../types'
 import { EventType } from '../types/event-type'
-import { eventBus } from './muso.eventbus'
 import { Stage } from './muso.stage'
 import { StageImage } from './muso.stage.image'
 
 class StageIO {
   private stage: Stage = null // 舞台.
   stageImages: StageImage[] = [] // 图片对象列表.
+
+  private get eventBus () { return this.stage.eventBus }
 
   /**
    * 添加图片并返回图片所处 Index.
@@ -56,7 +57,7 @@ class StageIO {
           await item.load()
         } catch (error) {
           console.error(`[Muso] Failed to load image ${item.url}:`, error)
-          eventBus.emit(EventType.ImageLoadingFailure, this)
+          this.eventBus.emit(EventType.ImageLoadingFailure, this)
         }
       }
     }
@@ -78,7 +79,7 @@ class StageIO {
         await image.load()
       } catch (error) {
         console.error(`[Muso] Failed to load image ${image.url}:`, error)
-        eventBus.emit(EventType.ImageLoadingFailure, this)
+        this.eventBus.emit(EventType.ImageLoadingFailure, this)
       }
     }
   }

@@ -50,10 +50,10 @@ abstract class MathUtils {
    */
   static calcFourPointsForImage (x0: number, y0: number, w: number, h: number) {
     return {
-      p0: [x0, y0],          // 左上.
-      p1: [x0 + w, y0],      // 右上.
-      p2: [x0 + w, y0 + h],  // 右下.
-      p3: [x0, y0 + h]       // 左下.
+      p0: [x0, y0], // 左上.
+      p1: [x0 + w, y0], // 右上.
+      p2: [x0 + w, y0 + h], // 右下.
+      p3: [x0, y0 + h] // 左下.
     }
   }
 

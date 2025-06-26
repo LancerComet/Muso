@@ -1,4 +1,32 @@
 /**
+ * Scrolling mode.
+ */
+enum ScrollingMode {
+  Horizontal = 'horizontal',
+  Vertical = 'vertical'
+}
+
+/**
+ * Flip direction in Horizontal scrolling mode.
+ */
+enum HorizontalDirection {
+  LTR = 'ltr',
+  RTL = 'rtl'
+}
+
+/**
+ * 触摸操作方向.
+ *
+ * @enum {TouchDirection}
+ */
+enum TouchDirection {
+  Left = 'left',
+  Right = 'right',
+  Top = 'top',
+  Bottom = 'bottom'
+}
+
+/**
  * 阅读器设置参数接口.
  *
  * @interface IMusoOption
@@ -161,34 +189,6 @@ interface IMusoOption {
    * @default () => 1
    */
   otherPageAlpha: () => number
-}
-
-/**
- * Scrolling mode.
- */
-enum ScrollingMode {
-  Horizontal = 'horizontal',
-  Vertical = 'vertical'
-}
-
-/**
- * Flip direction in Horizontal scrolling mode.
- */
-enum HorizontalDirection {
-  LTR = 'ltr',
-  RTL = 'rtl'
-}
-
-/**
- * 触摸操作方向.
- *
- * @enum {TouchDirection}
- */
-enum TouchDirection {
-  Left = 'left',
-  Right = 'right',
-  Top = 'top',
-  Bottom = 'bottom'
 }
 
 /**

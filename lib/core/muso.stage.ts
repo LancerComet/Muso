@@ -5,7 +5,6 @@ import { CanvasUtils } from '../utils/canvas'
 import { SleepUtils } from '../utils/sleep'
 import { TaskUtils } from '../utils/task'
 import { Muso } from './muso.core'
-import { eventBus } from './muso.eventbus'
 import { StageImage } from './muso.stage.image'
 import { StageIO } from './muso.stage.io'
 import { StageResizer } from './muso.stage.resizer'
@@ -43,7 +42,25 @@ class Stage {
   private muso: Muso = null
   private originalPlaceHolder: HTMLImageElement | HTMLCanvasElement | ImageBitmap = null
 
+  // 获取 Muso 实例的事件总线
+  get eventBus () { return this.muso.internalEventBus }
+
   private stopDrawing: boolean = false
+  private isDirty: boolean = true // Flag to track if redraw is needed
+
+  /**
+   * Mark the stage as dirty (needs redraw)
+   */
+  markDirty (): void {
+    this.isDirty = true
+  }
+
+  /**
+   * Mark the stage as clean (up to date)
+   */
+  private markClean (): void {
+    this.isDirty = false
+  }
 
   // Resize.
   // ================================
@@ -59,6 +76,7 @@ class Stage {
     stage.height = logicalHeight * SCREEN_RATIO
     stage.style.width = logicalWidth + 'px'
     stage.style.height = logicalHeight + 'px'
+    this.markDirty()
   }
 
   /**
@@ -194,13 +212,14 @@ class Stage {
     if (index > -1 && index < this.stageImages.length) {
       this.inPaging = true
       this.currentPageIndex = index
-      eventBus.emit(EventType.Paging, this.currentPageIndex)
+      this.eventBus.emit(EventType.Paging, this.currentPageIndex)
       this.setQueueOffset()
       await this.autoLoadImages()
       await this.updateAllImagesPosition()
       if (this.scrollingMode === ScrollingMode.Vertical) {
         this.setVerticalQueueOffsetByPage()
       }
+      this.markDirty()
       clearTimeout(this.pagingTimer)
       this.pagingTimer = setTimeout(() => {
         this.inPaging = false
@@ -238,7 +257,8 @@ class Stage {
     this.currentPageIndex = newPageIndex
     await this.autoLoadImages()
     await this.updateAllImagesPosition()
-    eventBus.emit(EventType.Paging, this.currentPageIndex)
+    this.eventBus.emit(EventType.Paging, this.currentPageIndex)
+    this.markDirty()
   }
 
   // View Mode.
@@ -282,8 +302,9 @@ class Stage {
     await this.autoLoadImages()
     await this.updateAllImagesPosition()
 
-    eventBus.emit(EventType.Paging, this.currentPageIndex)
-    eventBus.emit(EventType.ScrollingMode, mode)
+    this.eventBus.emit(EventType.Paging, this.currentPageIndex)
+    this.eventBus.emit(EventType.ScrollingMode, mode)
+    this.markDirty()
     this.inSetScrollingMode = false
 
     // 1. 由于 Worker 无法实时获取 Stage 中的实时数据, 比如 scrollingMode 和 isLeftHandMode 等,
@@ -298,7 +319,13 @@ class Stage {
   get imageLogicalWidth () { return this.currentImage.size.width * this.displayScale }
   get imageLogicalHeight () { return this.currentImage.size.height * this.displayScale }
 
-  displayScale: number = 1 // 当前图片的缩放比例.
+  private _displayScale: number = 1 // 当前图片的缩放比例.
+  get displayScale (): number { return this._displayScale }
+  set displayScale (value: number) {
+    this._displayScale = value
+    this.markDirty()
+  }
+
   imageX: number = 0 // 当前图片在舞台中的 X 位置.
   imageY: number = 0 // 当前图片在舞台中的 Y 位置.
   imageWidth: number = 0 // 当前图片在舞台中的宽度.
@@ -308,10 +335,20 @@ class Stage {
   get zoomCenterY (): number { return this.swiper.centerY } // 双指触摸中心 Y 坐标.
 
   // 队列偏移量.
-  queueOffsetForHorizontal: number = 0 // 横屏模式的队列偏移量.
+  private _queueOffsetForHorizontal: number = 0 // 横屏模式的队列偏移量.
+  get queueOffsetForHorizontal (): number { return this._queueOffsetForHorizontal }
+  set queueOffsetForHorizontal (value: number) {
+    this._queueOffsetForHorizontal = value
+    this.markDirty()
+  }
 
   // 竖屏模式的队列偏移量.
-  queueOffsetForVertical: number = 0
+  private _queueOffsetForVertical: number = 0
+  get queueOffsetForVertical (): number { return this._queueOffsetForVertical }
+  set queueOffsetForVertical (value: number) {
+    this._queueOffsetForVertical = value
+    this.markDirty()
+  }
 
   /**
    * 计算每张图片的位置信息.
@@ -520,9 +557,10 @@ class Stage {
   private initTicker () {
     const ticker = new Ticker()
     ticker.on(() => {
-      if (!this.stopDrawing) {
+      if (!this.stopDrawing && this.isDirty) {
         this.clearStage()
         this.drawImages()
+        this.markClean()
       }
     })
     ticker.start()
@@ -627,6 +665,22 @@ class Stage {
   swiper: StageSwiper = null
   touchMoveX: number = 0 // 触摸偏移 X.
   touchMoveY: number = 0 // 触摸偏移 Y.
+
+  /**
+   * Set touch move X and mark stage dirty
+   */
+  setTouchMoveX (value: number): void {
+    this.touchMoveX = value
+    this.markDirty()
+  }
+
+  /**
+   * Set touch move Y and mark stage dirty
+   */
+  setTouchMoveY (value: number): void {
+    this.touchMoveY = value
+    this.markDirty()
+  }
 
   isTouchDisabled: boolean = false
 

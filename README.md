@@ -240,6 +240,18 @@ enum EventType {
 }
 ```
 
+## Recent Improvements
+
+### v0.1.0 - Architecture Refactoring
+- **Event System**: Replaced global singleton event bus with instance-based event system for better encapsulation
+- **Performance**: Implemented dirty flag system to prevent unnecessary re-rendering
+- **Memory Management**: Fixed memory leaks in event listener cleanup
+- **Code Quality**: Improved TypeScript types and reduced linting issues from 22 to 10
+- **Error Handling**: Enhanced image loading with proper async/await patterns and error boundaries
+
+### Backwards Compatibility
+All public APIs remain unchanged. The refactoring focused on internal architecture improvements without breaking existing functionality.
+
 ## License
 
 Apache-2.0
