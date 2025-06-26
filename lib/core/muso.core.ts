@@ -1,6 +1,6 @@
 import { HorizontalDirection, IMusoOption, ScrollingMode } from '../types'
 import { EventType } from '../types/event-type'
-import { eventBus, EventBusCallback } from './muso.eventbus'
+import { EventBus, EventBusCallback } from './muso.eventbus'
 import { Stage } from './muso.stage'
 
 /**
@@ -11,11 +11,17 @@ import { Stage } from './muso.stage'
 class Muso {
   private option: IMusoOption = Object.create(null)
   private stage: Stage = null
+  private eventBus: EventBus = new EventBus()
 
   /**
    * Swiper 对象, 用于业务自行控制触摸操作.
    */
   get swiper () { return this.stage.swiper }
+
+  /**
+   * Get the internal event bus for this instance
+   */
+  get internalEventBus () { return this.eventBus }
 
   /**
    * 在目标节点上初始化阅读器.
@@ -33,7 +39,7 @@ class Muso {
    *
    */
   destroy () {
-    eventBus.destroy()
+    this.eventBus.destroy()
     this.stage.destroy()
     this.stage = null
     this.option = null
@@ -124,7 +130,7 @@ class Muso {
    * @param callback
    */
   on (eventName: EventType, callback: EventBusCallback) {
-    eventBus.on(eventName, callback)
+    this.eventBus.on(eventName, callback)
   }
 
   /**
@@ -134,7 +140,7 @@ class Muso {
    * @param callback
    */
   off (eventName: EventType, callback: EventBusCallback) {
-    eventBus.off(eventName, callback)
+    this.eventBus.off(eventName, callback)
   }
 
   /**

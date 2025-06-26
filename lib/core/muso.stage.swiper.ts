@@ -11,13 +11,17 @@ import {
 import { HorizontalDirection, ScrollingMode, TouchDirection } from '../types'
 import { EventType } from '../types/event-type'
 import { MathUtils } from '../utils/math'
-import { eventBus } from './muso.eventbus'
+import { EventBusCallback } from './muso.eventbus'
 import { Stage } from './muso.stage'
 
 class StageSwiper {
   private stage: Stage = null
   private get stageCanvas () { return this.stage.canvas }
   private get stageOption () { return this.stage.option }
+  private get eventBus () { return this.stage.eventBus }
+
+  // Store event handler references for proper cleanup
+  private eventHandlers: Array<{ event: string, handler: EventBusCallback }> = []
 
   private touchId: number = 0 // Touch 周期 Id.
   private currentTouchId: number = 0 // 当前周期的 Touch Id, 每次触摸时将设置. 两者的值在离开触摸后将不同步.
@@ -69,7 +73,7 @@ class StageSwiper {
         : TouchDirection.Left
     }
 
-    eventBus.emit(EventType.TouchMoveX, value)
+    this.eventBus.emit(EventType.TouchMoveX, value)
 
     // 处理单指触摸的 X 轴方向.
     // 如果触摸小于触动范围 || 多点触摸 || 非横向模式则退出不继续设置横向坐标.
@@ -78,7 +82,7 @@ class StageSwiper {
     }
 
     if (this.stage.displayScale === 1) {
-      this.stage.touchMoveX = value
+      this.stage.setTouchMoveX(value)
     }
 
     if (this.stage.displayScale > 1 && this.currentTouchId === this.touchId) {
@@ -102,7 +106,7 @@ class StageSwiper {
     }
 
     this._touchMoveY = value
-    eventBus.emit(EventType.TouchMoveY, value)
+    this.eventBus.emit(EventType.TouchMoveY, value)
 
     // 这里只需要处理单指触摸时的 Y 轴方向.
     if (this.isDuoTouch || !this.isHorizontalMode) {
@@ -110,7 +114,7 @@ class StageSwiper {
     }
 
     if (this.stage.displayScale === 1) {
-      this.stage.touchMoveY = value
+      this.stage.setTouchMoveY(value)
       return
     }
 
@@ -148,7 +152,7 @@ class StageSwiper {
         return true
       }
       stage.displayScale = value
-      eventBus.emit(EventType.Zooming, value)
+      this.eventBus.emit(EventType.Zooming, value)
     })
   }
 
@@ -233,12 +237,12 @@ class StageSwiper {
           this.startRawScale = this.rawScale
         }
 
-        eventBus.emit(EventType.EnterDuoTouch, event)
+        this.eventBus.emit(EventType.EnterDuoTouch, event)
       }
     }
 
     this.currentTouchId = this.touchId
-    eventBus.emit(EventType.TouchStart, event)
+    this.eventBus.emit(EventType.TouchStart, event)
   }
 
   // onTouchMove.
@@ -309,13 +313,13 @@ class StageSwiper {
       const centerDeltaX = centerX - this.startCenterX
       const centerDeltaY = centerY - this.startCenterY
 
-      eventBus.emit(EventType.ZoomCenterMove, {
+      this.eventBus.emit(EventType.ZoomCenterMove, {
         position: [this.centerX, this.centerY],
         delta: [centerDeltaX, centerDeltaY]
       })
     }
 
-    eventBus.emit(EventType.TouchMove, event)
+    this.eventBus.emit(EventType.TouchMove, event)
   }
 
   // onTouchEnd.
@@ -351,11 +355,11 @@ class StageSwiper {
     this.touchId++ // 增加 touchId, 双指变单指时依然增加, 视为不同的触摸周期.
 
     if (!this.isDuoTouch) {
-      eventBus.emit(EventType.LeaveDuoTouch, event)
+      this.eventBus.emit(EventType.LeaveDuoTouch, event)
     }
 
     if (!this.inTouch) {
-      eventBus.emit(EventType.TouchEnd, event)
+      this.eventBus.emit(EventType.TouchEnd, event)
     }
 
     this.p1.x = null
@@ -374,7 +378,7 @@ class StageSwiper {
     if (this.isHorizontalMode) {
       return
     }
-    eventBus.emit(EventType.MouseWheel, -event.deltaY)
+    this.eventBus.emit(EventType.MouseWheel, -event.deltaY)
   }
 
   // 初始化触摸事件.
@@ -429,7 +433,7 @@ class StageSwiper {
     }
 
     // 横屏模式处理滑动手势.
-    eventBus.on(EventType.Swipe, direction => {
+    this.addEventHandler(EventType.Swipe, direction => {
       // 在横屏模式时翻页.
       if (this.isHorizontalMode) {
         const isRtl = stage.option.horizontalDirection === HorizontalDirection.RTL
@@ -505,7 +509,7 @@ class StageSwiper {
       }
     }
 
-    eventBus.on(EventType.TouchMoveY, deltaY => {
+    this.addEventHandler(EventType.TouchMoveY, deltaY => {
       if (this.isHorizontalMode) { return }
 
       if (lastQueueOffsetForVertical === null) {
@@ -519,7 +523,7 @@ class StageSwiper {
       })
     })
 
-    eventBus.on(EventType.MouseWheel, deltaY => {
+    this.addEventHandler(EventType.MouseWheel, deltaY => {
       if (this.isHorizontalMode) { return }
 
       const lastQueueOffsetForVertical = this.stage.queueOffsetForVertical
@@ -528,10 +532,10 @@ class StageSwiper {
     })
 
     // 离开触摸.
-    eventBus.on(EventType.TouchEnd, () => {
+    this.addEventHandler(EventType.TouchEnd, () => {
       if (!this.isHorizontalMode) {
         const isScrollDown = newQueueOffsetY < lastQueueOffsetForVertical
-        eventBus.emit(EventType.Swipe, isScrollDown ? TouchDirection.Top : TouchDirection.Bottom)
+        this.eventBus.emit(EventType.Swipe, isScrollDown ? TouchDirection.Top : TouchDirection.Bottom)
         lastQueueOffsetForVertical = null
         newQueueOffsetY = 0
         return
@@ -542,9 +546,9 @@ class StageSwiper {
       if (displayScale === 1) {
         const swipeDistanceOfPaging = this.stageOption.swipeDistanceOfPaging
         if (this.p1DeltaX < 0 && this.p1DeltaX * -1 > swipeDistanceOfPaging) {
-          eventBus.emit(EventType.Swipe, TouchDirection.Left)
+          this.eventBus.emit(EventType.Swipe, TouchDirection.Left)
         } else if (this.p1DeltaX > swipeDistanceOfPaging) {
-          eventBus.emit(EventType.Swipe, TouchDirection.Right)
+          this.eventBus.emit(EventType.Swipe, TouchDirection.Right)
         }
 
         releaseMoveOffset()
@@ -560,7 +564,7 @@ class StageSwiper {
     })
 
     // 处理纵向模式的惯性持续滚动.
-    eventBus.on(EventType.Swipe, (direction: TouchDirection) => {
+    this.addEventHandler(EventType.Swipe, (direction: TouchDirection) => {
       if (direction !== TouchDirection.Bottom && direction !== TouchDirection.Top) {
         return
       }
@@ -615,9 +619,24 @@ class StageSwiper {
   }
 
   /**
+   * Register an event handler and track it for cleanup
+   */
+  private addEventHandler (event: string, handler: EventBusCallback): void {
+    this.eventBus.on(event, handler)
+    this.eventHandlers.push({ event, handler })
+  }
+
+  /**
    * 销毁 Swiper.
    */
   destroy () {
+    // Remove all tracked event handlers
+    for (const { event, handler } of this.eventHandlers) {
+      this.eventBus.off(event, handler)
+    }
+    this.eventHandlers = []
+
+    // Remove DOM event listeners
     const canvas = this.stageCanvas
     canvas.removeEventListener('touchstart', this.onTouchStart)
     canvas.removeEventListener('touchmove', this.onTouchMove)
