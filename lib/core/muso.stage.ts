@@ -321,11 +321,11 @@ class Stage {
 
   private _displayScale: number = 1 // 当前图片的缩放比例.
   get displayScale (): number { return this._displayScale }
-  set displayScale (value: number) { 
+  set displayScale (value: number) {
     this._displayScale = value
     this.markDirty()
   }
-  
+
   imageX: number = 0 // 当前图片在舞台中的 X 位置.
   imageY: number = 0 // 当前图片在舞台中的 Y 位置.
   imageWidth: number = 0 // 当前图片在舞台中的宽度.
@@ -337,7 +337,7 @@ class Stage {
   // 队列偏移量.
   private _queueOffsetForHorizontal: number = 0 // 横屏模式的队列偏移量.
   get queueOffsetForHorizontal (): number { return this._queueOffsetForHorizontal }
-  set queueOffsetForHorizontal (value: number) { 
+  set queueOffsetForHorizontal (value: number) {
     this._queueOffsetForHorizontal = value
     this.markDirty()
   }
@@ -345,7 +345,7 @@ class Stage {
   // 竖屏模式的队列偏移量.
   private _queueOffsetForVertical: number = 0
   get queueOffsetForVertical (): number { return this._queueOffsetForVertical }
-  set queueOffsetForVertical (value: number) { 
+  set queueOffsetForVertical (value: number) {
     this._queueOffsetForVertical = value
     this.markDirty()
   }

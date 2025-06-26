@@ -9,6 +9,11 @@ EMPTY_IMAGE.src = EMPTY_PNG_BASE64
 
 // let updatePositionTimer = null
 
+interface IStageImageOption {
+  url: string
+  stage: Stage
+}
+
 /**
  * 舞台图片信息对象.
  * 用来代表舞台中的一个图片.
@@ -214,55 +219,69 @@ class StageImage {
    *
    * @returns {Promise<void>}
    */
-  load (): Promise<void> {
-    return new Promise<void>(async (resolve, reject) => {
-      if (!this.isLoaded && !this.inLoading) {
-        this.inLoading = true
+  /**
+   * 加载图片.
+   *
+   * @returns {Promise<void>}
+   */
+  async load (): Promise<void> {
+    if (this.isLoaded || this.inLoading) {
+      return
+    }
 
-        const timeoutTimer = setTimeout(() => {
-          reject(new Error('Image loading timeout'))
-        }, this.stage.option.imageTimeout)
+    this.inLoading = true
 
-        const image = new Image()
-        const beforeLoad = this.stage.option.beforeImageLoad
+    try {
+      const image = new Image()
+      const beforeLoad = this.stage.option.beforeImageLoad
 
-        if (typeof beforeLoad === 'function') {
-          try {
-            this.url = await beforeLoad(this.url)
-          } catch (error) {
-            return reject(error)
-          }
-        }
+      let imageUrl = this.url
+      if (typeof beforeLoad === 'function') {
+        imageUrl = await beforeLoad(this.url)
+      }
 
-        image.onload = () => {
-          clearTimeout(timeoutTimer)
-          this.originalWidth = image.width
-          this.originalHeight = image.height
-          this.inLoading = false
-          this.isLoaded = true
-          this.image = image
+      await this.loadImageWithTimeout(image, imageUrl)
 
-          // 加载完成后更新图片位置.
-          // 推送至队列结尾执行, 否则纵向模式可能出现问题.
-          // clearTimeout(updatePositionTimer)
-          // updatePositionTimer = setTimeout(() => {
-          //   console.log('updateAllImagePosition')
-          //   this.stage.updateAllImagesPosition({ noBezier })
-          // }, 50)
+      this.originalWidth = image.width
+      this.originalHeight = image.height
+      this.isLoaded = true
+      this.image = image
 
-          resolve()
-        }
+      // 加载完成后更新图片位置.
+      // 推送至队列结尾执行, 否则纵向模式可能出现问题.
+      // clearTimeout(updatePositionTimer)
+      // updatePositionTimer = setTimeout(() => {
+      //   console.log('updateAllImagePosition')
+      //   this.stage.updateAllImagesPosition({ noBezier })
+      // }, 50)
+    } catch (error) {
+      console.error(`[Muso] Failed to load image ${this.url}:`, error)
+      this.isLoaded = false
+    } finally {
+      this.inLoading = false
+    }
+  }
 
-        image.onerror = (error) => {
-          clearTimeout(timeoutTimer)
-          this.inLoading = false
-          reject(error)
-        }
+  /**
+   * Load image with timeout
+   */
+  private loadImageWithTimeout (image: HTMLImageElement, url: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const timeoutTimer = setTimeout(() => {
+        reject(new Error('Image loading timeout'))
+      }, this.stage.option.imageTimeout)
 
-        image.src = this.url
-      } else {
+      image.onload = () => {
+        clearTimeout(timeoutTimer)
         resolve()
       }
+
+      image.onerror = (error) => {
+        clearTimeout(timeoutTimer)
+        reject(error)
+      }
+
+      image.src = url
     })
   }
 
@@ -289,9 +308,4 @@ class StageImage {
 
 export {
   StageImage
-}
-
-interface IStageImageOption {
-  url: string
-  stage: Stage
 }

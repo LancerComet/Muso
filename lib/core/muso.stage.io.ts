@@ -6,7 +6,7 @@ import { StageImage } from './muso.stage.image'
 class StageIO {
   private stage: Stage = null // 舞台.
   stageImages: StageImage[] = [] // 图片对象列表.
-  
+
   private get eventBus () { return this.stage.eventBus }
 
   /**
